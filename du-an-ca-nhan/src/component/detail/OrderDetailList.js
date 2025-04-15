@@ -53,7 +53,7 @@ const OrderDetailList = () => {
                     {orderDetails.map((detail) => (
                         <TableRow key={detail.id}>
                             <TableCell>{detail.id}</TableCell>
-                            <TableCell>{detail.productName}</TableCell>
+                            <TableCell>{detail.food.name}</TableCell>
                             <TableCell>{detail.quantity}</TableCell>
                             <TableCell>{detail.price}</TableCell>
                             <TableCell>

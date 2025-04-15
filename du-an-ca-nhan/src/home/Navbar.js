@@ -10,6 +10,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PersonIcon from '@mui/icons-material/Person';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getCartsByUserId } from '../services/CartService';
 
@@ -132,6 +133,12 @@ const Navbar = () => {
                     <Tooltip title="Thực đơn">
                         <IconButton color="inherit" onClick={() => navigate("/foods") }>
                             <RestaurantMenuIcon />
+                        </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="Đơn hàng">
+                        <IconButton color="inherit" onClick={() => navigate("/orders") }>
+                            <ReceiptLongIcon />
                         </IconButton>
                     </Tooltip>
 

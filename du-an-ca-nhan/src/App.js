@@ -20,8 +20,15 @@ import OrderForm from "./component/detail/OrderForm";
 import FoodReviewComponent from "./component/food/FoodReviewComponent";
 import PayPalPaymentComponent from "./component/paypal/PayPalPaymentComponent";
 import PaymentSuccess from "./component/paypal/PaymentSuccess";
+import OrderHistoryComponent from "./component/detail/OrderHistoryComponent";
+import PaymentCancel from "./component/paypal/PaymentCancel";
+import ProfilePage from "./pages/ProfilePage";
+import AdminStatistics from "./component/admin/AdminStatistics";
 
 function App() {
+    // ✅ Lấy userId từ localStorage
+    const userId = parseInt(localStorage.getItem("userId"));
+
     return (
         <Router>
             <Routes>
@@ -38,10 +45,16 @@ function App() {
                 <Route path="/order-detail" element={<OrderDetailList />} />
                 <Route path="/order-status" element={<OrderStatusManager />} />
                 <Route path="/orders" element={<OrderList />} />
-                <Route path="/orders-from" element={<OrderForm/>}/>
-                <Route path="/foods-review" element={<FoodReviewComponent/>}/>
-                <Route path="/paypal" element={<PayPalPaymentComponent/>}/>
-                <Route path="/payment-success" element={<PaymentSuccess/>}/>
+                <Route path="/orders-from" element={<OrderForm />} />
+                <Route path="/foods-review" element={<FoodReviewComponent />} />
+                <Route path="/paypal" element={<PayPalPaymentComponent />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/order-history" element={<OrderHistoryComponent userId={userId} />} />
+                <Route path="/payment-cancel" element={<PaymentCancel />} />
+                <Route path="/profile" element={<ProfilePage/>}/>
+                <Route path="/admin/statistics" element={<AdminStatistics />} />
+
+
             </Routes>
 
             <ToastContainer

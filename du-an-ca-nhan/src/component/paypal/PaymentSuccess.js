@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useContext, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { executePayment } from '../../services/PayPalService';
 import { checkoutCart } from '../../services/CartService';
@@ -18,37 +18,47 @@ const PaymentSuccess = () => {
     const { refreshCartCount } = useContext(CartContext);
     const [loading, setLoading] = useState(true);
 
+    const calledRef = useRef(false); // ✅ Ngăn gọi lại khi reload
+
     useEffect(() => {
         const paymentId = searchParams.get("paymentId");
-        const payerId = searchParams.get("PayerID");
+        const payerId = searchParams.get("PayerID"); // ⚠️ Đúng tên key
+        const orderId = searchParams.get("orderId");
         const userId = parseInt(localStorage.getItem("userId"));
 
         const handleSuccess = async () => {
             try {
-                await executePayment(paymentId, payerId);
+                const result = await executePayment(paymentId, payerId, orderId);
 
+                if (typeof result === 'string' && result.includes('PAYMENT_ALREADY_DONE')) {
+                    toast.info("💡 Giao dịch đã được xử lý trước đó.");
+                } else {
+                    toast.success("🎉 Thanh toán và đơn hàng đã xác nhận!");
+                }
+
+                // Nếu có user, gọi xoá giỏ hàng
                 if (!isNaN(userId)) {
                     try {
                         await checkoutCart(userId);
-                    } catch (checkoutError) {
-                        console.warn("Giỏ hàng có thể đã bị xoá hoặc trống:", checkoutError);
+                    } catch (err) {
+                        console.warn("Không thể xoá giỏ hàng:", err);
                     }
                 }
 
                 refreshCartCount();
-                toast.success("🎉 Thanh toán thành công! Cảm ơn bạn đã đặt hàng.");
             } catch (error) {
-                console.error("Lỗi khi xử lý thanh toán:", error);
-                toast.error("❌ Lỗi khi xử lý thanh toán.");
+                console.error("❌ Lỗi khi xác nhận thanh toán:", error);
+                toast.error("❌ Lỗi khi xác nhận thanh toán.");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (paymentId && payerId && userId) {
+        if (!calledRef.current && paymentId && payerId && orderId) {
+            calledRef.current = true; 
             handleSuccess();
-        } else {
-            toast.error("Dữ liệu thanh toán không hợp lệ.");
+        } else if (!paymentId || !payerId || !orderId) {
+            toast.error("❌ Thiếu thông tin thanh toán.");
             setLoading(false);
         }
     }, [searchParams, refreshCartCount]);

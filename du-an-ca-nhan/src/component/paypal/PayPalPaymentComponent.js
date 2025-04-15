@@ -27,7 +27,7 @@ const PayPalPaymentComponent = () => {
         try {
             const redirectUrl = await createPayment(parseFloat(amount));
             if (redirectUrl && redirectUrl.startsWith('http')) {
-                window.location.href = redirectUrl; // Chuyển hướng sang PayPal
+                window.location.href = redirectUrl; 
             } else {
                 setError('Không thể tạo thanh toán.');
             }

@@ -124,7 +124,6 @@ const Home = () => {
                 </Container>
             </Box>
 
-            {/* Food Detail Dialog */}
             <Dialog open={openDetail} onClose={handleCloseDetail} maxWidth="sm" fullWidth>
                 <DialogTitle>Chi tiết món ăn</DialogTitle>
                 {selectedFood && (

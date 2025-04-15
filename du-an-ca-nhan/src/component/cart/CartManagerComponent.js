@@ -1,7 +1,6 @@
-// CartManagerComponent.jsx
-import React, { useEffect, useState, useContext, createContext } from 'react';
+import React, { useEffect, useState, useContext, createContext, useCallback } from 'react';
 import {
-    Grid, Card, CardContent, CardMedia, Typography, IconButton,
+    Grid, Card, CardMedia, Typography, IconButton,
     Box, Button, Divider, Stack, Paper
 } from '@mui/material';
 import { Delete, Payment, ShoppingCart } from '@mui/icons-material';
@@ -9,9 +8,9 @@ import {
     getCartsByUserId,
     deleteCart
 } from '../../services/CartService';
+import { createOrder } from '../../services/orderService';
 import { createPayment } from '../../services/PayPalService';
 
-// Context chia sẻ số lượng giỏ hàng
 export const CartContext = createContext({ cartCount: 0, refreshCartCount: () => {} });
 
 const CartManagerComponent = ({ userId: propUserId, setFoods, cartUpdatedTrigger }) => {
@@ -21,7 +20,7 @@ const CartManagerComponent = ({ userId: propUserId, setFoods, cartUpdatedTrigger
     const localUserId = localStorage.getItem("userId");
     const userId = propUserId || (localUserId ? parseInt(localUserId) : null);
 
-    const fetchCart = async () => {
+    const fetchCart = useCallback(async () => {
         try {
             const data = await getCartsByUserId(userId);
             setCarts(Array.isArray(data) ? data : []);
@@ -30,15 +29,15 @@ const CartManagerComponent = ({ userId: propUserId, setFoods, cartUpdatedTrigger
             console.error("Lỗi khi tải giỏ hàng:", e);
             setCarts([]);
         }
-    };
+    }, [userId, refreshCartCount]);
 
     useEffect(() => {
-        if (userId && Number.isInteger(Number(userId))) {
+        if (userId && Number.isInteger(userId)) {
             fetchCart();
         } else {
             console.warn("Không có userId hợp lệ để tải giỏ hàng.");
         }
-    }, [userId, cartUpdatedTrigger]);
+    }, [userId, cartUpdatedTrigger, fetchCart]);
 
     const handleDelete = async (cartId, foodId, quantity) => {
         if (window.confirm("Bạn có chắc chắn xoá món này khỏi giỏ hàng?")) {
@@ -68,8 +67,24 @@ const CartManagerComponent = ({ userId: propUserId, setFoods, cartUpdatedTrigger
         }
 
         try {
+            // ✅ Bước 1: Tạo đơn hàng
+            const order = {
+                user: { id: userId },
+                totalPrice: total,
+                status: 'PENDING',
+                paymentMethod: 'PAYPAL',
+                orderDetails: carts.map(cart => ({
+                    food: { id: cart.food.id },
+                    quantity: cart.quantity,
+                    price: cart.food.price
+                }))
+            };
+
+            const savedOrder = await createOrder(order);
+
+            // ✅ Bước 2: Tạo thanh toán PayPal
             const usdAmount = total / 24000;
-            const redirectUrl = await createPayment(usdAmount);
+            const redirectUrl = await createPayment(usdAmount, savedOrder.id);
 
             if (redirectUrl && redirectUrl.startsWith("http")) {
                 window.location.href = redirectUrl;
@@ -77,8 +92,8 @@ const CartManagerComponent = ({ userId: propUserId, setFoods, cartUpdatedTrigger
                 alert("Không thể tạo thanh toán.");
             }
         } catch (error) {
-            console.error("Lỗi khi tạo thanh toán:", error);
-            alert("❌ Lỗi khi tạo thanh toán!");
+            console.error("❌ Lỗi khi tạo đơn hàng hoặc thanh toán:", error);
+            alert("Lỗi khi tạo đơn hàng hoặc thanh toán!");
         }
     };
 

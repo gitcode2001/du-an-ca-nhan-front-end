@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/orders';
 
-// Lấy tất cả đơn hàng
+// Lấy tất cả đơn hàng (admin)
 export const getAllOrders = async () => {
     try {
         const response = await axios.get(API_URL);
@@ -13,7 +13,16 @@ export const getAllOrders = async () => {
     }
 };
 
-// Lấy đơn hàng theo ID
+export const getOrdersByUserId = async (userId) => {
+    try {
+        const response = await axios.get(`${API_URL}/user/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Lỗi khi lấy đơn hàng của user ID = ${userId}:`, error);
+        throw error;
+    }
+};
+
 export const getOrderById = async (id) => {
     try {
         const response = await axios.get(`${API_URL}/${id}`);
@@ -24,13 +33,13 @@ export const getOrderById = async (id) => {
     }
 };
 
-// Tạo mới đơn hàng
+// Tạo đơn hàng
 export const createOrder = async (order) => {
     try {
         const response = await axios.post(API_URL, order);
         return response.data;
     } catch (error) {
-        console.error('Lỗi khi tạo đơn hàng:', error);
+        console.error('❌ Lỗi khi tạo đơn hàng:', error);
         throw error;
     }
 };
@@ -46,13 +55,12 @@ export const updateOrder = async (id, order) => {
     }
 };
 
-// Xóa đơn hàng
 export const deleteOrder = async (id) => {
     try {
         const response = await axios.delete(`${API_URL}/${id}`);
         return response.data;
     } catch (error) {
-        console.error(`Lỗi khi xóa đơn hàng ID = ${id}:`, error);
+        console.error(`Lỗi khi xoá đơn hàng ID = ${id}:`, error);
         throw error;
     }
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
     Box, Typography, TextField, Button, Alert, Stepper, Step,
-    StepLabel, Paper, Snackbar, Dialog, DialogTitle, DialogContent
+    StepLabel, Paper, Snackbar, Divider
 } from "@mui/material";
 import MuiAlert from '@mui/material/Alert';
 import ReCAPTCHA from "react-google-recaptcha";
@@ -33,17 +33,15 @@ const ForgotPasswordFlowComponent = () => {
 
     const handleSendOtp = async () => {
         setError(""); setMessage("");
-
-        if (!captchaToken) return setError("Vui lòng xác thực reCAPTCHA trước khi gửi mã!");
-
-        if (!emailOrUsername) return setError("Vui lòng nhập email hoặc tên đăng nhập");
+        if (!captchaToken) return setError("❗ Vui lòng xác thực reCAPTCHA trước khi gửi mã!");
+        if (!emailOrUsername) return setError("⚠️ Vui lòng nhập email hoặc tên đăng nhập");
 
         const res = await forgotPassword(emailOrUsername);
         if (res.success) {
-            setMessage("✅ Mã OTP đã được gửi.");
+            setMessage("✅ Mã OTP đã được gửi thành công.");
             setStep(1);
             setOtpTimer(60);
-            setOtpResendCount(otpResendCount + 1);
+            setOtpResendCount((prev) => prev + 1);
             setSnackbarOpen(true);
         } else {
             setError(res.message);
@@ -52,11 +50,11 @@ const ForgotPasswordFlowComponent = () => {
 
     const handleVerifyOtp = async () => {
         setError(""); setMessage("");
-        if (!otp) return setError("Vui lòng nhập mã OTP");
+        if (!otp) return setError("⚠️ Vui lòng nhập mã OTP");
 
         const res = await verifyOtp(emailOrUsername, otp);
         if (res.success) {
-            setMessage("✅ Mã OTP hợp lệ. Bạn có thể đặt lại mật khẩu mới.");
+            setMessage("✅ Mã OTP hợp lệ, tiếp tục đặt lại mật khẩu.");
             setStep(2);
         } else {
             setError(res.message);
@@ -68,15 +66,15 @@ const ForgotPasswordFlowComponent = () => {
         const strongPassword = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{6,}$/;
 
         if (!newPassword || newPassword !== confirmPassword) {
-            return setError("Mật khẩu không khớp hoặc chưa nhập!");
+            return setError("❗ Mật khẩu không khớp hoặc chưa nhập đầy đủ!");
         }
         if (!strongPassword.test(newPassword)) {
-            return setError("Mật khẩu cần có ít nhất 6 ký tự, 1 chữ hoa, 1 chữ thường và 1 số.");
+            return setError("⚠️ Mật khẩu cần ít nhất 6 ký tự, 1 chữ hoa, 1 chữ thường và 1 số.");
         }
 
         const res = await resetPassword(emailOrUsername, newPassword);
         if (res.success) {
-            setMessage("🎉 Đặt lại mật khẩu thành công. Chuyển hướng...");
+            setMessage("🎉 Đặt lại mật khẩu thành công! Đang chuyển hướng...");
             setTimeout(() => navigate("/login"), 2000);
         } else {
             setError(res.message);
@@ -84,12 +82,14 @@ const ForgotPasswordFlowComponent = () => {
     };
 
     return (
-        <Box sx={{ maxWidth: 500, mx: "auto", mt: 5 }}>
-            <Paper sx={{ p: 4 }} elevation={3}>
-                <Typography variant="h5" fontWeight="bold" gutterBottom>🔐 Quên mật khẩu</Typography>
+        <Box sx={{ maxWidth: 500, mx: "auto", mt: 6 }}>
+            <Paper elevation={4} sx={{ p: 4, borderRadius: 3 }}>
+                <Typography variant="h5" fontWeight={600} textAlign="center" gutterBottom>
+                    🔐 Khôi phục mật khẩu
+                </Typography>
 
                 <Stepper activeStep={step} alternativeLabel sx={{ mb: 3 }}>
-                    {["Nhập tài khoản", "Nhập OTP", "Đặt lại mật khẩu"].map((label) => (
+                    {["Tài khoản", "Mã OTP", "Mật khẩu mới"].map((label) => (
                         <Step key={label}><StepLabel>{label}</StepLabel></Step>
                     ))}
                 </Stepper>
@@ -97,6 +97,7 @@ const ForgotPasswordFlowComponent = () => {
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                 {message && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
 
+                <Divider sx={{ mb: 3 }} />
 
                 {step === 0 && (
                     <>
@@ -105,34 +106,36 @@ const ForgotPasswordFlowComponent = () => {
                             fullWidth
                             value={emailOrUsername}
                             onChange={(e) => setEmailOrUsername(e.target.value)}
-                            sx={{ mb: 2 }}
+                            sx={{ mb: 3 }}
                         />
                         <ReCAPTCHA
                             sitekey="6LfA9hErAAAAAOzmDJI1GyklnYfliaMVhvl8uHq8"
                             onChange={token => setCaptchaToken(token)}
-                            sx={{ mb: 2 }}
                         />
-                        <Button variant="contained" fullWidth onClick={handleSendOtp}>Gửi mã OTP</Button>
+                        <Button variant="contained" fullWidth sx={{ mt: 3 }} onClick={handleSendOtp}>
+                            Gửi mã OTP
+                        </Button>
                     </>
                 )}
 
-
                 {step === 1 && (
                     <>
-                        <Typography gutterBottom>
-                            Mã OTP đã gửi, còn <strong>{otpTimer}s</strong> để xác minh.
+                        <Typography sx={{ mb: 2 }}>
+                            Mã OTP đã được gửi. Vui lòng nhập trong <strong>{otpTimer}s</strong>.
                         </Typography>
                         <TextField
                             label="Nhập mã OTP"
                             fullWidth
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
-                            sx={{ mb: 2 }}
+                            sx={{ mb: 3 }}
                         />
                         <Button variant="contained" fullWidth onClick={handleVerifyOtp}>
                             Xác nhận OTP
                         </Button>
                         <Button
+                            fullWidth
+                            variant="outlined"
                             disabled={otpTimer > 0 || otpResendCount >= 3}
                             onClick={handleSendOtp}
                             sx={{ mt: 2 }}
@@ -145,22 +148,24 @@ const ForgotPasswordFlowComponent = () => {
                 {step === 2 && (
                     <>
                         <TextField
-                            label="Mật khẩu mới"
+                            label="🔐 Mật khẩu mới"
                             type="password"
                             fullWidth
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            sx={{ mb: 2 }}
+                            sx={{ mb: 3 }}
                         />
                         <TextField
-                            label="Xác nhận mật khẩu"
+                            label="🔁 Xác nhận mật khẩu mới"
                             type="password"
                             fullWidth
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            sx={{ mb: 2 }}
+                            sx={{ mb: 3 }}
                         />
-                        <Button variant="contained" fullWidth onClick={handleResetPassword}>Đặt lại mật khẩu</Button>
+                        <Button variant="contained" fullWidth onClick={handleResetPassword}>
+                            Đặt lại mật khẩu
+                        </Button>
                     </>
                 )}
             </Paper>
@@ -169,10 +174,14 @@ const ForgotPasswordFlowComponent = () => {
                 open={snackbarOpen}
                 autoHideDuration={3000}
                 onClose={() => setSnackbarOpen(false)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             >
-                <MuiAlert severity="success" onClose={() => setSnackbarOpen(false)}>
-                    🎉 Gửi lại mã OTP thành công!
+                <MuiAlert
+                    severity="success"
+                    variant="filled"
+                    onClose={() => setSnackbarOpen(false)}
+                >
+                    🎉 Mã OTP đã được gửi!
                 </MuiAlert>
             </Snackbar>
         </Box>

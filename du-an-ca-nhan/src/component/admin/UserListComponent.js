@@ -5,7 +5,7 @@ import {
     Chip, Snackbar, Alert, MenuItem, Select, InputLabel, FormControl, Dialog,
     DialogTitle, DialogContent, DialogActions, Button
 } from "@mui/material";
-import { Edit, Delete, Lock, LockOpen, FileDownload } from "@mui/icons-material";
+import { Edit, Delete, Lock, LockOpen, FileDownload, Visibility } from "@mui/icons-material";
 import { deleteUser, getAllUsers, updateUser } from "../../services/userService";
 import { lockAccount } from "../../services/accountService";
 
@@ -17,6 +17,7 @@ const UserListComponent = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [statusFilter, setStatusFilter] = useState("all");
     const [editUser, setEditUser] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
 
     const fetchUsers = async () => {
         const data = await getAllUsers(search, 0, 100);
@@ -37,11 +38,7 @@ const UserListComponent = () => {
 
     const handleLock = async (accountId) => {
         const response = await lockAccount(accountId);
-        if (response.success) {
-            setSnackbar({ open: true, message: response.message, severity: 'success' });
-        } else {
-            setSnackbar({ open: true, message: response.message, severity: 'error' });
-        }
+        setSnackbar({ open: true, message: response.message, severity: response.success ? 'success' : 'error' });
         fetchUsers();
     };
 
@@ -153,6 +150,14 @@ const UserListComponent = () => {
                                 </TableCell>
                                 <TableCell align="center">
                                     <Stack direction="row" spacing={1} justifyContent="center">
+                                        <Tooltip title="Xem chi tiết">
+                                            <IconButton
+                                                onClick={() => setSelectedUser(user)}
+                                                color="info"
+                                            >
+                                                <Visibility />
+                                            </IconButton>
+                                        </Tooltip>
                                         <Tooltip title={user.account.locked ? "Mở khoá tài khoản" : "Khoá tài khoản"}>
                                             <IconButton
                                                 onClick={() => handleLock(user.id)}
@@ -182,7 +187,6 @@ const UserListComponent = () => {
                             </TableRow>
                         ))}
                     </TableBody>
-
                 </Table>
                 <TablePagination
                     component="div"
@@ -213,11 +217,68 @@ const UserListComponent = () => {
                             fullWidth
                             value={editUser.email || ""}
                             onChange={(e) => setEditUser({ ...editUser, email: e.target.value })}
+                            sx={{ mb: 2 }}
                         />
+                        <TextField
+                            label="Số điện thoại"
+                            fullWidth
+                            value={editUser.phoneNumber || ""}
+                            onChange={(e) => setEditUser({ ...editUser, phoneNumber: e.target.value })}
+                            sx={{ mb: 2 }}
+                        />
+                        <TextField
+                            label="Địa chỉ"
+                            fullWidth
+                            value={editUser.address || ""}
+                            onChange={(e) => setEditUser({ ...editUser, address: e.target.value })}
+                            sx={{ mb: 2 }}
+                        />
+                        <TextField
+                            label="Ngày sinh"
+                            type="date"
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                            value={editUser.birthDate || ""}
+                            onChange={(e) => setEditUser({ ...editUser, birthDate: e.target.value })}
+                            sx={{ mb: 2 }}
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel>Giới tính</InputLabel>
+                            <Select
+                                value={editUser.gender}
+                                onChange={(e) => setEditUser({ ...editUser, gender: e.target.value })}
+                                label="Giới tính"
+                            >
+                                <MenuItem value={true}>Nam</MenuItem>
+                                <MenuItem value={false}>Nữ</MenuItem>
+                            </Select>
+                        </FormControl>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setEditUser(null)} color="secondary">Hủy</Button>
                         <Button onClick={handleEditSubmit} variant="contained" color="primary">Lưu</Button>
+                    </DialogActions>
+                </Dialog>
+            )}
+
+            {selectedUser && (
+                <Dialog open={true} onClose={() => setSelectedUser(null)} maxWidth="sm" fullWidth>
+                    <DialogTitle>👤 Thông tin người dùng</DialogTitle>
+                    <DialogContent dividers>
+                        <Stack spacing={1}>
+                            <Typography><strong>Tài khoản:</strong> {selectedUser.account?.userName}</Typography>
+                            <Typography><strong>Họ tên:</strong> {selectedUser.fullName}</Typography>
+                            <Typography><strong>Email:</strong> {selectedUser.email}</Typography>
+                            <Typography><strong>Số điện thoại:</strong> {selectedUser.phoneNumber}</Typography>
+                            <Typography><strong>Địa chỉ:</strong> {selectedUser.address}</Typography>
+                            <Typography><strong>Giới tính:</strong> {selectedUser.gender === true ? "Nam" : selectedUser.gender === false ? "Nữ" : "Không xác định"}</Typography>
+                            <Typography><strong>Ngày sinh:</strong> {selectedUser.birthDate ? new Date(selectedUser.birthDate).toLocaleDateString("vi-VN") : "Chưa cập nhật"}</Typography>
+                            <Typography><strong>Vai trò:</strong> {selectedUser.account?.role?.nameRoles || "Không xác định"}</Typography>
+                            <Typography><strong>Trạng thái:</strong> {selectedUser.account?.locked ? "Đã khoá" : "Hoạt động"}</Typography>
+                        </Stack>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setSelectedUser(null)}>Đóng</Button>
                     </DialogActions>
                 </Dialog>
             )}

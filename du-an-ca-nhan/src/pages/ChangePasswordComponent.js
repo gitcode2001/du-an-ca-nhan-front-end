@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import {
-    Box, Typography, TextField, Button, Snackbar, Alert, Paper
+    Box,
+    Typography,
+    TextField,
+    Button,
+    Snackbar,
+    Alert,
+    Paper,
+    Divider
 } from '@mui/material';
 import { changePassword } from '../services/accountService';
 
@@ -12,12 +19,17 @@ const ChangePasswordComponent = () => {
 
     const handleSubmit = async () => {
         if (newPassword !== confirmPassword) {
-            setSnackbar({ open: true, message: 'Mật khẩu mới không khớp', severity: 'error' });
+            setSnackbar({ open: true, message: '❌ Mật khẩu mới không khớp.', severity: 'error' });
             return;
         }
 
         const result = await changePassword(oldPassword, newPassword);
-        setSnackbar({ open: true, message: result.message, severity: result.success ? 'success' : 'error' });
+        setSnackbar({
+            open: true,
+            message: result.message || 'Có lỗi xảy ra.',
+            severity: result.success ? 'success' : 'error'
+        });
+
         if (result.success) {
             setOldPassword('');
             setNewPassword('');
@@ -26,45 +38,66 @@ const ChangePasswordComponent = () => {
     };
 
     return (
-        <Box sx={{ p: 4, maxWidth: 500, mx: 'auto' }}>
-            <Paper elevation={3} sx={{ p: 3 }}>
-                <Typography variant="h5" gutterBottom>🔒 Đổi mật khẩu</Typography>
+        <Box sx={{ maxWidth: 500, mx: 'auto', mt: 5 }}>
+            <Paper elevation={4} sx={{ p: 4, borderRadius: 3 }}>
+                <Typography variant="h5" align="center" gutterBottom>
+                    🔐 Thay đổi mật khẩu
+                </Typography>
+
+                <Divider sx={{ my: 2 }} />
+
                 <TextField
-                    label="Mật khẩu hiện tại"
+                    label="🔒 Mật khẩu hiện tại"
                     type="password"
                     fullWidth
-                    sx={{ mb: 2 }}
+                    variant="outlined"
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
+                    sx={{ mb: 3 }}
                 />
+
                 <TextField
-                    label="Mật khẩu mới"
+                    label="🆕 Mật khẩu mới"
                     type="password"
                     fullWidth
-                    sx={{ mb: 2 }}
+                    variant="outlined"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    sx={{ mb: 3 }}
                 />
+
                 <TextField
-                    label="Xác nhận mật khẩu mới"
+                    label="✅ Xác nhận mật khẩu mới"
                     type="password"
                     fullWidth
-                    sx={{ mb: 3 }}
+                    variant="outlined"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    sx={{ mb: 4 }}
                 />
-                <Button variant="contained" color="primary" fullWidth onClick={handleSubmit}>
-                    Đổi mật khẩu
+
+                <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    size="large"
+                    onClick={handleSubmit}
+                >
+                    Cập nhật mật khẩu
                 </Button>
             </Paper>
 
             <Snackbar
                 open={snackbar.open}
-                autoHideDuration={3000}
+                autoHideDuration={4000}
                 onClose={() => setSnackbar({ ...snackbar, open: false })}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
+                <Alert
+                    severity={snackbar.severity}
+                    variant="filled"
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                >
                     {snackbar.message}
                 </Alert>
             </Snackbar>

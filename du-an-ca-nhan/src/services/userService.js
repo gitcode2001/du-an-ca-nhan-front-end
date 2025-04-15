@@ -16,7 +16,7 @@ export const getAllUsers = async (search = "", page = 0, size = 5) => {
 
 export const getUserByUsername = async (username) => {
     try {
-        const response = await axios.get(`${BASE_URL}/information`, {
+        const response = await axios.get(`${API_URL}/information`, {
             params: { username },
         });
         return response.data;
