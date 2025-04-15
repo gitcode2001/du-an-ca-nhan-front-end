@@ -1,92 +1,83 @@
 import axios from "axios";
-import { toast } from "react-toastify";
 
-const API_URL = "http://localhost:8080/api/account";
+const API_URL = "http://localhost:8080/api/login";
 
-// ✅ Đăng nhập
+const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` })
+    };
+};
+
 export const login = async (username, password) => {
     try {
-        const response = await axios.post(`${API_URL}/login`, { username, password });
-        toast.success("Đăng nhập thành công");
-        return response.data;
-    } catch (error) {
-        toast.error("Tên đăng nhập hoặc mật khẩu không đúng");
-        throw error;
-    }
-};
-
-// ✅ Đổi mật khẩu
-export const changePassword = async (username, oldPassword, newPassword, confirmPassword) => {
-    try {
-        const response = await axios.post(`${API_URL}/change-password`, {
-            username,
-            oldPassword,
-            newPassword,
-            confirmPassword,
+        const response = await axios.post(`${API_URL}`, { username, password }, {
+            headers: getAuthHeaders()
         });
-        toast.success("Đổi mật khẩu thành công");
         return response.data;
     } catch (error) {
-        toast.error("Đổi mật khẩu thất bại");
-        throw error;
+        console.error("Lỗi khi đăng nhập:", error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || "Đăng nhập thất bại" };
     }
 };
 
-// ✅ Gửi OTP khi quên mật khẩu
+export const changePassword = async (oldPassword, newPassword) => {
+    try {
+        const response = await axios.put(`${API_URL}/change-password`, { oldPassword, newPassword }, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi đổi mật khẩu:", error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || "Đổi mật khẩu thất bại" };
+    }
+};
+
 export const forgotPassword = async (emailOrUsername) => {
     try {
-        const response = await axios.post(`${API_URL}/forgot-password`, { emailOrUsername });
-        toast.success("Gửi OTP thành công");
+        const response = await axios.post(`${API_URL}/forgot-password`, { emailOrUsername }, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     } catch (error) {
-        toast.error("Không thể gửi OTP");
-        throw error;
+        console.error("Lỗi khi gửi yêu cầu quên mật khẩu:", error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || "Lấy lại mật khẩu thất bại" };
     }
 };
 
-// ✅ Xác minh OTP
 export const verifyOtp = async (emailOrUsername, otp) => {
     try {
-        const response = await axios.post(`${API_URL}/verify-otp`, { emailOrUsername, otp });
-        toast.success("Xác minh OTP thành công");
+        const response = await axios.post(`${API_URL}/verify-otp`, { emailOrUsername, otp }, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     } catch (error) {
-        toast.error("OTP không hợp lệ hoặc đã hết hạn");
-        throw error;
+        console.error("Lỗi khi xác thực OTP:", error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || "Xác thực OTP thất bại" };
     }
 };
 
-// ✅ Đặt lại mật khẩu mới sau khi xác minh OTP
-export const resetNewPassword = async (emailOrUsername, newPassword) => {
+export const resetPassword = async (emailOrUsername, newPassword) => {
     try {
-        const response = await axios.post(`${API_URL}/new-password`, { emailOrUsername, newPassword });
-        toast.success("Đặt lại mật khẩu thành công");
+        const response = await axios.put(`${API_URL}/reset-password`, { emailOrUsername, newPassword }, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     } catch (error) {
-        toast.error("Không thể đặt lại mật khẩu");
-        throw error;
+        console.error("Lỗi khi đặt lại mật khẩu:", error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || "Đặt lại mật khẩu thất bại" };
     }
 };
 
-// ✅ Khóa tài khoản
-export const lockAccount = async (userId) => {
+export const lockAccount = async (id) => {
     try {
-        const response = await axios.put(`${API_URL}/lock/${userId}`);
-        toast.success("Khóa tài khoản thành công");
+        const response = await axios.put(`${API_URL}/lock/${id}`, {}, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     } catch (error) {
-        toast.error("Lỗi khi khóa tài khoản");
-        throw error;
-    }
-};
-
-// ✅ Lấy thông tin tài khoản theo username
-export const getAccountByUsername = async (username) => {
-    try {
-        const response = await axios.get(`${API_URL}/${username}`);
-        return response.data;
-    } catch (error) {
-        toast.error("Không thể lấy thông tin tài khoản");
-        throw error;
+        console.error("Lỗi khi khóa tài khoản:", error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || "Khóa tài khoản thất bại" };
     }
 };

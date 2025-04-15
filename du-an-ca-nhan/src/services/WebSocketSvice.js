@@ -5,7 +5,6 @@ const SOCKET_URL = "http://localhost:8080/ws";
 
 let stompClient = null;
 
-// Kết nối WebSocket cho người dùng
 export const connectWebSocketUser = (onMessageReceived) => {
     const socket = new SockJS(SOCKET_URL);
     stompClient = new Client({

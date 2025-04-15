@@ -1,106 +1,66 @@
 import axios from "axios";
-import { toast } from "react-toastify";
 
-const API_URL = "http://localhost:8080/api/users"; 
+const BASE_URL = "http://localhost:8080/api";
+const API_URL = `${BASE_URL}/admin`;
 
-// Lấy tất cả người dùng
-export const getAllUsers = async () => {
+export const getAllUsers = async (search = "", page = 0, size = 5) => {
     try {
-        const response = await axios.get(API_URL);
-        return response.data;
-    } catch (error) {
-        toast.error("Lỗi khi lấy danh sách người dùng");
-        console.error(error);
-        return [];
-    }
-};
-
-// Lấy người dùng theo ID
-export const getUserById = async (id) => {
-    try {
-        const response = await axios.get(`${API_URL}/${id}`);
-        return response.data;
-    } catch (error) {
-        toast.error("Không tìm thấy người dùng");
-        return null;
-    }
-};
-
-// Tạo người dùng mới
-export const createUser = async (userDTO) => {
-    try {
-        const response = await axios.post(API_URL, userDTO);
-        toast.success("Tạo người dùng thành công");
-        return response.data;
-    } catch (error) {
-        if (error.response?.status === 409) {
-            toast.error(error.response.data); // Email hoặc Username đã tồn tại
-        } else {
-            toast.error("Lỗi khi tạo người dùng");
-        }
-        throw error;
-    }
-};
-
-// Cập nhật người dùng
-export const updateUser = async (id, userDTO) => {
-    try {
-        const response = await axios.put(`${API_URL}/${id}`, userDTO);
-        toast.success("Cập nhật người dùng thành công");
-        return response.data;
-    } catch (error) {
-        toast.error("Lỗi khi cập nhật người dùng");
-        throw error;
-    }
-};
-
-// Xóa người dùng
-export const deleteUser = async (id) => {
-    try {
-        const response = await axios.delete(`${API_URL}/${id}`);
-        toast.success("Xóa người dùng thành công");
-        return response.data;
-    } catch (error) {
-        toast.error("Lỗi khi xóa người dùng");
-        throw error;
-    }
-};
-
-// Tìm kiếm người dùng có phân trang
-export const searchUsers = async (keyword = "", page = 0, size = 5) => {
-    try {
-        const response = await axios.get(`${API_URL}/search`, {
-            params: { keyword, page, size },
+        const response = await axios.get(API_URL, {
+            params: { search, page, size },
         });
         return response.data;
     } catch (error) {
-        toast.error("Lỗi khi tìm kiếm người dùng");
         return { content: [], totalElements: 0 };
     }
 };
 
-// Kiểm tra username
-export const checkUsername = async (username) => {
+export const getUserByUsername = async (username) => {
     try {
-        const response = await axios.get(`${API_URL}/check-username`, {
+        const response = await axios.get(`${BASE_URL}/information`, {
             params: { username },
         });
         return response.data;
     } catch (error) {
-        toast.error("Lỗi khi kiểm tra username");
-        return false;
+        return null;
     }
 };
 
-// Kiểm tra email
-export const checkEmail = async (email) => {
+export const createUser = async (userDTO) => {
     try {
-        const response = await axios.get(`${API_URL}/check-email`, {
-            params: { email },
+        if (!userDTO.password || userDTO.password.trim() === "") {
+            delete userDTO.password;
+        }
+        const response = await axios.post(API_URL, userDTO);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const updateUser = async (id, userDTO) => {
+    try {
+        const response = await axios.put(`${API_URL}/${id}`, userDTO);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const deleteUser = async (id) => {
+    try {
+        await axios.delete(`${API_URL}/${id}`);
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const checkAccount = async (email, username) => {
+    try {
+        const response = await axios.get(`${API_URL}/check_account`, {
+            params: { email, username },
         });
         return response.data;
     } catch (error) {
-        toast.error("Lỗi khi kiểm tra email");
-        return false;
+        return { existsEmail: false, existsUsername: false };
     }
 };
