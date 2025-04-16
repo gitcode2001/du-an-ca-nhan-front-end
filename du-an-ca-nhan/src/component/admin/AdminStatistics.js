@@ -147,19 +147,19 @@ const AdminStatistics = () => {
                     <Tab label="Theo năm" />
                 </Tabs>
 
-                <Box mt={3}>
+                <Box mt={3} sx={{ overflowX: 'auto' }}>
                     <ResponsiveContainer width="100%" height={420}>
-                        <BarChart data={revenueData} barCategoryGap={20} barGap={4}>
+                        <BarChart data={revenueData} barCategoryGap={20} barGap={6}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="label" angle={-25} textAnchor="end" height={60} />
+                            <XAxis dataKey="label" angle={-20} textAnchor="end" height={60} />
                             <YAxis tickFormatter={(v) => `${(v / 1e6).toFixed(1)}tr`} />
                             <Tooltip
                                 formatter={(value, name) => name === "Số đơn hàng" ? `${value} đơn` : `${value.toLocaleString('vi-VN')} VNĐ`}
                                 labelFormatter={(label) => `Thời điểm: ${label}`}
                             />
-                            <Legend wrapperStyle={{ fontSize: 12 }} />
+                            <Legend wrapperStyle={{ fontSize: 13 }} />
                             <Bar dataKey="total" name="Tổng doanh thu" fill="#1976d2" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="count" name="Số đơn hàng" fill="#ef6c00" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="count" name="Số đơn hàng" fill="#f57c00" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </Box>

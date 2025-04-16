@@ -55,7 +55,7 @@ const PaymentSuccess = () => {
         };
 
         if (!calledRef.current && paymentId && payerId && orderId) {
-            calledRef.current = true; 
+            calledRef.current = true;
             handleSuccess();
         } else if (!paymentId || !payerId || !orderId) {
             toast.error("❌ Thiếu thông tin thanh toán.");
