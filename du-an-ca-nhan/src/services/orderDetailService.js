@@ -25,3 +25,7 @@ export const updateOrderDetail = async (id, orderDetail) => {
 export const deleteOrderDetail = async (id) => {
     await axios.delete(`${API_URL}/${id}`);
 };
+export const getTopSoldFoods = async () => {
+    const response = await axios.get(`${API_URL}/top-sold`);
+    return response.data;
+};

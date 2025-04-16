@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import {
     getAllOrders,
     getOrdersByUserId,
-    deleteOrder
+    deleteOrder,
+    updateOrder
 } from '../../services/orderService';
 import { toast } from 'react-toastify';
 import {
@@ -21,7 +22,8 @@ import {
     Divider,
     FormControlLabel,
     Switch,
-    Button
+    Button,
+    Chip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RestoreIcon from '@mui/icons-material/Restore';
@@ -33,7 +35,6 @@ import * as pdfFonts from "pdfmake/build/vfs_fonts";
 
 pdfMake.vfs = pdfFonts.vfs;
 
-
 const OrderList = () => {
     const [orders, setOrders] = useState([]);
     const [expandedOrderId, setExpandedOrderId] = useState(null);
@@ -41,6 +42,8 @@ const OrderList = () => {
     const userId = localStorage.getItem('userId');
     const role = localStorage.getItem('role');
     const isAdmin = role === 'admin';
+
+    const formatCurrency = (amount) => `${(amount || 0).toLocaleString('vi-VN')} VNĐ`;
 
     const fetchOrders = async () => {
         try {
@@ -70,14 +73,36 @@ const OrderList = () => {
     };
 
     useEffect(() => {
-        fetchOrders();
-    }, [showDeleted]);
+        if (userId) {
+            fetchOrders();
+        }
+    }, [showDeleted, userId]);
 
     const exportSingleOrderToPDF = async (order) => {
+        if (!order.orderDetails || order.orderDetails.length === 0) {
+            toast.warn("Không có chi tiết để in hoá đơn.");
+            return;
+        }
+
+        if (order.status !== 'CONFIRMED') {
+            try {
+                await updateOrder(order.id, {
+                    status: 'CONFIRMED',
+                    paymentMethod: order.paymentMethod,
+                    totalPrice: order.totalPrice
+                });
+                toast.success(`✅ Đơn hàng #${order.id} đã được xác nhận.`);
+                await fetchOrders();
+            } catch (err) {
+                toast.error('❌ Cập nhật trạng thái đơn hàng thất bại!');
+                return;
+            }
+        }
+
         const orderDetails = order.orderDetails.map(detail => [
             detail.food?.name || 'Món ăn',
             detail.quantity,
-            `${detail.price.toLocaleString('vi-VN')} VNĐ`
+            formatCurrency(detail.price)
         ]);
 
         const docDefinition = {
@@ -85,20 +110,18 @@ const OrderList = () => {
                 { text: 'NHÀ HÀNG DOLA', style: 'restaurantName' },
                 { text: 'HÓA ĐƠN BÁN HÀNG', style: 'invoiceTitle' },
                 { text: `Mã đơn hàng: #${order.id}`, style: 'orderCode' },
-
                 {
                     columns: [
                         {
                             width: '*',
                             stack: [
-                                { text: `👤 Khách hàng: ${order.userName || 'Ẩn danh'}` },
+                                { text: `👤 Khách hàng: ${order.userName || 'Khách lẻ'}` },
                                 { text: `📅 Ngày tạo: ${new Date(order.createdAt).toLocaleString('vi-VN')}` },
                             ]
                         }
                     ],
                     margin: [0, 10, 0, 10]
                 },
-
                 {
                     table: {
                         headerRows: 1,
@@ -114,19 +137,17 @@ const OrderList = () => {
                     },
                     layout: 'lightHorizontalLines'
                 },
-
                 {
                     columns: [
                         { width: '*', text: '' },
                         {
                             width: 'auto',
-                            text: `Tổng tiền: ${order.totalPrice.toLocaleString('vi-VN')} VNĐ`,
+                            text: `Tổng tiền: ${formatCurrency(order.totalPrice)}`,
                             style: 'totalPrice',
                             margin: [0, 10, 0, 0]
                         }
                     ]
                 },
-
                 { text: '🌟 Cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi!', style: 'thankYou', margin: [0, 30, 0, 0] }
             ],
             styles: {
@@ -174,7 +195,6 @@ const OrderList = () => {
         pdfMake.createPdf(docDefinition).download(`HoaDon_DonHang_${order.id}.pdf`);
     };
 
-
     const exportAllOrdersPDF = async () => {
         for (const order of orders) {
             await exportSingleOrderToPDF(order);
@@ -194,6 +214,9 @@ const OrderList = () => {
                             label="Hiện đơn hàng đã xoá"
                         />
                         <Button variant="outlined" onClick={exportAllOrdersPDF}>🖨️ Xuất PDF tất cả</Button>
+                        <Typography variant="subtitle2" color="text.secondary">
+                            Tổng: {orders.length} đơn hàng
+                        </Typography>
                     </Stack>
                 )}
             </Card>
@@ -217,10 +240,22 @@ const OrderList = () => {
                                     <TableRow hover sx={{ backgroundColor: order.deleted ? '#ffebee' : 'inherit' }}>
                                         <TableCell>{order.id}</TableCell>
                                         <TableCell>{order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : '---'}</TableCell>
-                                        <TableCell>{order.userName || 'Ẩn danh'}</TableCell>
-                                        <TableCell>{order.statusDisplay || order.status || '---'}</TableCell>
+                                        <TableCell>{order.userName || 'Khách lẻ'}</TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={order.statusDisplay || order.status || '---'}
+                                                color={
+                                                    order.status === 'COMPLETED'
+                                                        ? 'success'
+                                                        : order.status === 'CANCELLED'
+                                                            ? 'error'
+                                                            : 'warning'
+                                                }
+                                                variant="outlined"
+                                            />
+                                        </TableCell>
                                         <TableCell>{order.paymentMethodDisplay || order.paymentMethod || '---'}</TableCell>
-                                        <TableCell>{order.totalPrice?.toLocaleString('vi-VN') || 0} VNĐ</TableCell>
+                                        <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
                                         <TableCell>
                                             <Stack direction="row" spacing={1}>
                                                 <IconButton color="primary" onClick={() => toggleExpand(order.id)}>
@@ -266,7 +301,7 @@ const OrderList = () => {
                                                                     <TableRow key={index}>
                                                                         <TableCell>{detail.food?.name || 'Món ăn'}</TableCell>
                                                                         <TableCell>{detail.quantity}</TableCell>
-                                                                        <TableCell>{detail.price.toLocaleString('vi-VN')} VNĐ</TableCell>
+                                                                        <TableCell>{formatCurrency(detail.price)}</TableCell>
                                                                     </TableRow>
                                                                 ))}
                                                             </TableBody>

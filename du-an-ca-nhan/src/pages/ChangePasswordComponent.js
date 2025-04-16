@@ -9,7 +9,7 @@ import {
     Paper,
     Divider
 } from '@mui/material';
-import { changePassword } from '../services/accountService';
+import { changePassword } from '../services/AccountService';
 
 const ChangePasswordComponent = () => {
     const [oldPassword, setOldPassword] = useState('');

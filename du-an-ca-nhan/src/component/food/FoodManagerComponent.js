@@ -26,8 +26,10 @@ import { Add, Edit, Delete, ShoppingCart, Info } from '@mui/icons-material';
 import { getAllFoods, deleteFood } from '../../services/FoodService';
 import { getAllCategories } from '../../services/CategoryService';
 import { createCart } from '../../services/CartService';
+import { getTopSoldFoods } from '../../services/orderDetailService';
 import FoodFormDialog from './FoodFormDialog';
-import CartManagerComponent, { CartContext } from '../cart/CartManagerComponent';
+import CartManagerComponent from '../cart/CartManagerComponent';
+import { CartContext } from '../cart/CartContext';
 import Navbar from '../../home/Navbar';
 import Footer from '../../home/Footer';
 import FoodReviewComponent from '../food/FoodReviewComponent';
@@ -62,8 +64,20 @@ const FoodManagerComponent = () => {
 
     const fetchFoods = async () => {
         try {
-            const data = await getAllFoods();
-            setFoods(data);
+            const [foodsData, topSoldData] = await Promise.all([
+                getAllFoods(),
+                getTopSoldFoods()
+            ]);
+
+            const foodsWithSold = foodsData.map(food => {
+                const matched = topSoldData.find(item => item.id === food.id);
+                return {
+                    ...food,
+                    sold: matched ? matched.sold : 0
+                };
+            });
+
+            setFoods(foodsWithSold);
         } catch (error) {
             console.error("Lỗi khi tải danh sách món ăn", error);
         }
@@ -229,7 +243,9 @@ const FoodManagerComponent = () => {
                                         <Typography variant="h6" color="primary">{food.name}</Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             💵 {food.price.toLocaleString()} VNĐ<br />
-                                            📦 {food.quantity > 0 ? `Còn lại: ${food.quantity}` : "⛔ Hết hàng"}
+                                            📦 Còn lại: {food.quantity}<br />
+                                            🔥 Đã bán: {food.sold || 0}
+
                                         </Typography>
                                     </Box>
                                     <Stack direction="row" spacing={1} justifyContent="flex-end" mt={2}>
@@ -299,6 +315,7 @@ const FoodManagerComponent = () => {
                             <Typography variant="h6">{selectedFood.name}</Typography>
                             <Typography>💵 Giá: {selectedFood.price.toLocaleString()} VNĐ</Typography>
                             <Typography>📦 Số lượng: {selectedFood.quantity}</Typography>
+                            <Typography>🔥 Đã bán: {selectedFood.sold || 0}</Typography>
                             <Typography>📄 Mô tả: {selectedFood.description}</Typography>
                             <Typography>📂 Danh mục: {selectedFood.category?.name || 'Không có'}</Typography>
                             <Typography>🏷️ Trạng thái: {selectedFood.status}</Typography>

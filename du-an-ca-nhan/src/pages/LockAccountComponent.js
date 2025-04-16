@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Alert } from '@mui/material';
-import { lockAccount } from '../services/accountService';
+import { lockAccount } from '../services/AccountService';
 
 const LockAccountComponent = () => {
     const [userId, setUserId] = useState('');

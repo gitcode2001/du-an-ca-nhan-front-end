@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
     AppBar, Toolbar, Typography, InputBase, Box, Stack,
     Button, IconButton, Tooltip, Badge, Menu, MenuItem, Divider
@@ -12,45 +12,35 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PersonIcon from '@mui/icons-material/Person';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { getCartsByUserId } from '../services/CartService';
+import { CartContext } from "../component/cart/CartContext";
 
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const username = localStorage.getItem("username");
     const role = localStorage.getItem("role");
-    const userId = localStorage.getItem("userId");
 
     const queryParams = new URLSearchParams(location.search);
     const initialKeyword = queryParams.get("keyword") || "";
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
-
-    const [cartCount, setCartCount] = useState(0);
     const [search, setSearch] = useState(initialKeyword);
 
-    useEffect(() => {
-        const fetchCartCount = async () => {
-            try {
-                if (userId) {
-                    const response = await getCartsByUserId(userId);
-                    const carts = Array.isArray(response)
-                        ? response
-                        : Array.isArray(response?.carts)
-                            ? response.carts
-                            : response?.data || [];
+    const { cartCount, refreshCartCount } = useContext(CartContext);
 
-                    const totalItems = carts.reduce((sum, cart) => sum + cart.quantity, 0);
-                    setCartCount(totalItems);
-                }
-            } catch (error) {
-                console.error("Lỗi khi lấy số lượng giỏ hàng:", error);
-            }
+    useEffect(() => {
+        refreshCartCount();
+    }, [location.pathname]);
+
+    useEffect(() => {
+        const handleCartEvent = () => {
+            refreshCartCount();
         };
 
-        fetchCartCount();
-    }, [userId]);
+        window.addEventListener("cart-updated", handleCartEvent);
+        return () => window.removeEventListener("cart-updated", handleCartEvent);
+    }, [refreshCartCount]);
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);

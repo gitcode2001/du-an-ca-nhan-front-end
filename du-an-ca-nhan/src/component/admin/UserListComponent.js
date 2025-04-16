@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Lock, LockOpen, FileDownload, Visibility } from "@mui/icons-material";
 import { deleteUser, getAllUsers, updateUser } from "../../services/userService";
-import { lockAccount } from "../../services/accountService";
+import { lockAccount } from "../../services/AccountService";
 
 const UserListComponent = () => {
     const [users, setUsers] = useState([]);

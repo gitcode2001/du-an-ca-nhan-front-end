@@ -3,7 +3,6 @@ import { Box, Typography, IconButton, Container, Grid } from "@mui/material";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import InstagramIcon from "@mui/icons-material/Instagram";
-import MapIcon from '@mui/icons-material/Map';
 
 const Footer = () => {
     return (
@@ -14,23 +13,32 @@ const Footer = () => {
                 color: "white",
                 py: 5,
                 mt: "auto",
-                textAlign: "center",
                 fontFamily: "Arial, sans-serif"
             }}
         >
             <Container>
-                <Grid container spacing={4} justifyContent="space-between">
-                    <Grid item xs={12} md={4}>
+                <Grid container spacing={4}>
+                    {/* Thông tin công ty - căn giữa */}
+                    <Grid item xs={12} md={4} sx={{ textAlign: "center" }}>
                         <Typography variant="h6" fontWeight="bold" mb={2}>THÔNG TIN CÔNG TY</Typography>
-                        <Typography variant="body2" paragraph>Công ty TNHH Thực Phẩm XYZ</Typography>
-                        <Typography variant="body2" paragraph>Địa chỉ: 295 Nguyễn Tất Thành, Thanh Bình, Hải Châu, Đà Nẵng, Việt Nam</Typography>
-                        <Typography variant="body2" paragraph>Điện thoại: 0935.558.143</Typography>
-                        <Typography variant="body2" paragraph>Email: admin@xyz.com</Typography>
+                        <Typography variant="body2">Công ty TNHH Thực Phẩm XYZ</Typography>
+                        <Typography variant="body2">Địa chỉ: 295 Nguyễn Tất Thành, Thanh Bình, Hải Châu, Đà Nẵng</Typography>
+                        <Typography variant="body2">Điện thoại: 0935.558.143</Typography>
+                        <Typography variant="body2">Email: admin@xyz.com</Typography>
                     </Grid>
 
+                    {/* Chính sách - giữ bên phải */}
                     <Grid item xs={12} md={4}>
                         <Typography variant="h6" fontWeight="bold" mb={2}>CHÍNH SÁCH CHUNG</Typography>
-                        {["Mua hàng và thanh toán", "Chính sách vận chuyển", "Chính sách đổi trả hàng", "Chính sách bảo mật", "Quy chế hoạt động", "Giới thiệu công ty", "Liên hệ"].map((policy, index) => (
+                        {[
+                            "Mua hàng và thanh toán",
+                            "Chính sách vận chuyển",
+                            "Chính sách đổi trả hàng",
+                            "Chính sách bảo mật",
+                            "Quy chế hoạt động",
+                            "Giới thiệu công ty",
+                            "Liên hệ"
+                        ].map((item, index) => (
                             <Typography
                                 key={index}
                                 variant="body2"
@@ -40,12 +48,13 @@ const Footer = () => {
                                     mb: 1
                                 }}
                             >
-                                {policy}
+                                {item}
                             </Typography>
                         ))}
                     </Grid>
 
-                    <Grid item xs={12} md={4}>
+                    {/* Bản đồ - căn giữa */}
+                    <Grid item xs={12} md={4} sx={{ textAlign: "center" }}>
                         <Typography variant="h6" fontWeight="bold" mb={2}>BẢN ĐỒ ĐƯỜNG ĐI</Typography>
                         <Box sx={{ width: "100%", height: "250px", borderRadius: "10px", overflow: "hidden" }}>
                             <iframe
@@ -62,16 +71,16 @@ const Footer = () => {
                     </Grid>
                 </Grid>
 
-                {/* Mạng xã hội */}
+                {/* Kết nối mạng xã hội */}
                 <Box sx={{ textAlign: "center", mt: 4 }}>
                     <Typography variant="h6" fontWeight="bold" mb={2}>KẾT NỐI VỚI CHÚNG TÔI</Typography>
-                    <IconButton color="inherit" sx={{ mr: 2 }}>
+                    <IconButton color="inherit" sx={{ mx: 1 }}>
                         <FacebookIcon fontSize="large" />
                     </IconButton>
-                    <IconButton color="inherit" sx={{ mr: 2 }}>
+                    <IconButton color="inherit" sx={{ mx: 1 }}>
                         <InstagramIcon fontSize="large" />
                     </IconButton>
-                    <IconButton color="inherit">
+                    <IconButton color="inherit" sx={{ mx: 1 }}>
                         <YouTubeIcon fontSize="large" />
                     </IconButton>
                 </Box>

@@ -21,7 +21,7 @@ const FoodFormDialog = ({ open, onClose, onSave, food }) => {
     const isEdit = Boolean(food);
     const [categories, setCategories] = useState([]);
 
-    const [formData, setFormData] = useState({
+    const initialFormData = {
         name: '',
         description: '',
         price: '',
@@ -30,7 +30,9 @@ const FoodFormDialog = ({ open, onClose, onSave, food }) => {
         status: 'AVAILABLE',
         imageUrl: '',
         category: null,
-    });
+    };
+
+    const [formData, setFormData] = useState(initialFormData);
     const [imageFile, setImageFile] = useState(null);
 
     useEffect(() => {
@@ -43,23 +45,16 @@ const FoodFormDialog = ({ open, onClose, onSave, food }) => {
     }, []);
 
     useEffect(() => {
-        if (isEdit && food) {
-            setFormData(food);
-            setImageFile(null);
-        } else {
-            setFormData({
-                name: '',
-                description: '',
-                price: '',
-                quantity: '',
-                rating: '',
-                status: 'AVAILABLE',
-                imageUrl: '',
-                category: null,
-            });
-            setImageFile(null);
+        if (open) {
+            if (isEdit && food) {
+                setFormData(food);
+                setImageFile(null);
+            } else {
+                setFormData(initialFormData);
+                setImageFile(null);
+            }
         }
-    }, [food, isEdit]);
+    }, [open, isEdit, food]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -109,6 +104,8 @@ const FoodFormDialog = ({ open, onClose, onSave, food }) => {
             }
             onSave();
             onClose();
+            setFormData(initialFormData);
+            setImageFile(null);
         } catch (error) {
             alert("Lỗi khi lưu món ăn!");
             console.error("Chi tiết lỗi backend:", error.response?.data || error);
@@ -136,7 +133,6 @@ const FoodFormDialog = ({ open, onClose, onSave, food }) => {
                         <MenuItem value="INACTIVE">Không hoạt động</MenuItem>
                     </Select>
                 </FormControl>
-
 
                 <FormControl fullWidth margin="dense">
                     <InputLabel>Danh mục</InputLabel>

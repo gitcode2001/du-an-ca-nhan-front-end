@@ -45,7 +45,7 @@ const AdminStatistics = () => {
             const totalOrders = filteredOrders.length;
             const totalRevenue = filteredOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
 
-            const groupBy = (formatFn) => {
+            const groupBy = (formatFn, rangeGenerator) => {
                 const map = {};
                 filteredOrders.forEach(order => {
                     const date = new Date(order.createdAt);
@@ -54,8 +54,43 @@ const AdminStatistics = () => {
                     map[key].total += order.totalPrice || 0;
                     map[key].count++;
                 });
-                return Object.values(map).sort((a, b) => a.label.localeCompare(b.label));
+                const result = [];
+                rangeGenerator().forEach(label => {
+                    if (!map[label]) {
+                        map[label] = { label, total: 0, count: 0 };
+                    }
+                    result.push(map[label]);
+                });
+                return result;
             };
+
+            const hourlyRevenue = groupBy(
+                d => `${d.getHours().toString().padStart(2, '0')}:00`,
+                () => Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`)
+            );
+
+            const today = new Date();
+            const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+            const dailyRevenue = groupBy(
+                d => d.toISOString().slice(0, 10),
+                () => Array.from({ length: daysInMonth }, (_, i) => {
+                    const day = (i + 1).toString().padStart(2, '0');
+                    return `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${day}`;
+                })
+            );
+
+            const monthlyRevenue = groupBy(
+                d => `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`,
+                () => Array.from({ length: 12 }, (_, i) => {
+                    return `${today.getFullYear()}-${(i + 1).toString().padStart(2, '0')}`;
+                })
+            );
+
+            const currentYear = today.getFullYear();
+            const yearlyRevenue = groupBy(
+                d => `${d.getFullYear()}`,
+                () => Array.from({ length: 5 }, (_, i) => `${currentYear - 4 + i}`)
+            );
 
             setStats({
                 totalUsers,
@@ -63,10 +98,10 @@ const AdminStatistics = () => {
                 lockedUsers,
                 totalOrders,
                 totalRevenue,
-                hourlyRevenue: groupBy(d => `${d.getHours().toString().padStart(2, '0')}:00`),
-                dailyRevenue: groupBy(d => d.toISOString().slice(0, 10)),
-                monthlyRevenue: groupBy(d => `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`),
-                yearlyRevenue: groupBy(d => `${d.getFullYear()}`)
+                hourlyRevenue,
+                dailyRevenue,
+                monthlyRevenue,
+                yearlyRevenue
             });
             setLoading(false);
         };
@@ -148,11 +183,11 @@ const AdminStatistics = () => {
                 </Tabs>
 
                 <Box mt={3} sx={{ overflowX: 'auto' }}>
-                    <ResponsiveContainer width="100%" height={420}>
-                        <BarChart data={revenueData} barCategoryGap={20} barGap={6}>
+                    <ResponsiveContainer width="100%" height={540}>
+                        <BarChart data={revenueData} barCategoryGap={8} barGap={4}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="label" angle={-20} textAnchor="end" height={60} />
-                            <YAxis tickFormatter={(v) => `${(v / 1e6).toFixed(1)}tr`} />
+                            <XAxis dataKey="label" angle={-25} textAnchor="end" height={80} tick={{ fontSize: 13 }} />
+                            <YAxis tick={{ fontSize: 13 }} tickFormatter={(v) => `${(v / 1e6).toFixed(1)}tr`} />
                             <Tooltip
                                 formatter={(value, name) => name === "Số đơn hàng" ? `${value} đơn` : `${value.toLocaleString('vi-VN')} VNĐ`}
                                 labelFormatter={(label) => `Thời điểm: ${label}`}

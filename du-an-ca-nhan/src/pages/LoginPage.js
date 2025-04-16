@@ -7,7 +7,7 @@ import {
     Grid,
     Paper
 } from '@mui/material';
-import { login } from '../services/accountService';
+import { login } from '../services/AccountService';
 import { useNavigate } from 'react-router-dom';
 import { connectWebSocketUser } from '../services/WebSocketSvice';
 import { toast } from 'react-toastify';

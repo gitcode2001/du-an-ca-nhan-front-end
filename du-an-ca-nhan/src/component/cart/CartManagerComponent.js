@@ -8,8 +8,8 @@ import {
     getCartsByUserId,
     deleteCart
 } from '../../services/CartService';
-import { createOrder } from '../../services/orderService';
 import { createPayment } from '../../services/PayPalService';
+import { createOrUpdatePendingOrder } from '../../services/orderService';
 
 export const CartContext = createContext({ cartCount: 0, refreshCartCount: () => {} });
 
@@ -25,6 +25,7 @@ const CartManagerComponent = ({ userId: propUserId, setFoods, cartUpdatedTrigger
             const data = await getCartsByUserId(userId);
             setCarts(Array.isArray(data) ? data : []);
             refreshCartCount();
+            window.dispatchEvent(new Event("cart-updated"));
         } catch (e) {
             console.error("Lỗi khi tải giỏ hàng:", e);
             setCarts([]);
@@ -67,22 +68,7 @@ const CartManagerComponent = ({ userId: propUserId, setFoods, cartUpdatedTrigger
         }
 
         try {
-            // ✅ Bước 1: Tạo đơn hàng
-            const order = {
-                user: { id: userId },
-                totalPrice: total,
-                status: 'PENDING',
-                paymentMethod: 'PAYPAL',
-                orderDetails: carts.map(cart => ({
-                    food: { id: cart.food.id },
-                    quantity: cart.quantity,
-                    price: cart.food.price
-                }))
-            };
-
-            const savedOrder = await createOrder(order);
-
-            // ✅ Bước 2: Tạo thanh toán PayPal
+            const savedOrder = await createOrUpdatePendingOrder(userId, carts, total);
             const usdAmount = total / 24000;
             const redirectUrl = await createPayment(usdAmount, savedOrder.id);
 

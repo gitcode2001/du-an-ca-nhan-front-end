@@ -5,7 +5,7 @@ import {
 } from "@mui/material";
 import MuiAlert from '@mui/material/Alert';
 import ReCAPTCHA from "react-google-recaptcha";
-import { forgotPassword, verifyOtp, resetPassword } from "../services/accountService";
+import { forgotPassword, verifyOtp, resetPassword } from "../services/AccountService";
 import { useNavigate } from "react-router-dom";
 
 const ForgotPasswordFlowComponent = () => {
